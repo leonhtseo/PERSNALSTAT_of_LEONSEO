@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RPG 로그 북 - 전설의 테마</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff');
+
+        :root {
+            --main-brown: #3e2723;
+            --hp-color: #ff5252;
+            --mp-color: #2196f3;
+            --exp-color: #ffd740;
+            --gold-color: #ff8f00;
+        }
+
+        /* 레벨별 테마 정의 */
+        body { transition: background-color 1s ease, color 0.5s ease; font-family: 'DungGeunMo', sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
+        
+        .theme-rookie { background-color: #f4f7f6; } /* 1~9: 평범한 시작 */
+        .theme-apprentice { background-color: #e8f5e9; } /* 10~19: 성장의 숲 */
+        .theme-veteran { background-color: #fff3e0; } /* 20~34: 노을진 전장 */
+        .theme-legend { background-color: #f3e5f5; } /* 35~: 전설의 영역 */
+
+        .container { width: 100%; max-width: 450px; position: relative; }
+
+        .card {
+            background: white; border: 3px solid var(--main-brown);
+            padding: 15px; border-radius: 12px; margin-bottom: 12px;
+            box-shadow: 6px 6px 0px rgba(0,0,0,0.1);
+        }
+
+        .profile-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; border-bottom: 2px dashed #ddd; padding-bottom: 8px; }
+        .lv-info { font-size: 1.3rem; font-weight: bold; }
+        .job-title { font-size: 0.85rem; color: #795548; display: block; }
+
+        .bar-label { display: flex; justify-content: space-between; font-size: 0.8rem; margin-top: 8px; }
+        .bar-container { width: 100%; height: 20px; background: #eee; border: 2px solid var(--main-brown); border-radius: 10px; margin: 4px 0; overflow: hidden; }
+        .bar-fill { height: 100%; transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .hp-fill { background-color: var(--hp-color); }
+        .mp-fill { background-color: var(--mp-color); }
+        .exp-fill { background-color: var(--exp-color); }
+
+        .chart-container { width: 100%; height: 240px; margin: 5px 0; }
+
+        .stat-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; background: #fafafa; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
+        .stat-item { text-align: center; font-size: 0.7rem; font-weight: bold; }
+        .stat-item input { width: 85%; text-align: center; border: 2px solid var(--main-brown); border-radius: 4px; padding: 4px; font-family: 'DungGeunMo'; margin-top: 3px; }
+
+        /* 퀘스트 & 스페셜 */
+        .section-title { font-size: 0.9rem; margin: 10px 0 5px 0; font-weight: bold; }
+        .quest-list { background: #fff; border: 2px solid var(--main-brown); padding: 10px; border-radius: 10px; margin-bottom: 10px; }
+        .quest-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; padding: 3px 0; }
+        
+        .special-box { background: #f3e5f5; border: 2px solid #a333c8; padding: 10px; border-radius: 10px; display: flex; gap: 5px; }
+        .special-box input { flex: 1; font-family: 'DungGeunMo'; padding: 5px; border: 1px solid #a333c8; border-radius: 4px; }
+        .special-btn { background: #a333c8; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-family: 'DungGeunMo'; font-size: 0.75rem; }
+
+        .control-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;}
+        .control-box { background: #fff; border: 2px solid var(--main-brown); padding: 10px; border-radius: 8px; font-size: 0.8rem; }
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 5px; }
+        button { font-family: 'DungGeunMo'; cursor: pointer; border: 2px solid var(--main-brown); background: white; padding: 5px; border-radius: 4px; font-size: 0.75rem; }
+
+        .log-area { background: #1a1a1a; padding: 10px; border-radius: 8px; height: 140px; overflow-y: auto; font-size: 0.75rem; line-height: 1.5; border: 2px solid var(--main-brown); margin-top: 5px; }
+        .log-pos { color: #4caf50; }
+        .log-neg { color: #ff5252; font-weight: bold; }
+        .log-special { color: #d1a3ff; font-weight: bold; text-shadow: 0 0 2px rgba(255,255,255,0.3); }
+
+        .sparkle { position: absolute; width: 6px; height: 6px; background: gold; border-radius: 50%; pointer-events: none; z-index: 1000; animation: move-sparkle 1s ease-out forwards; }
+        @keyframes move-sparkle { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; } }
+
+        .footer-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 15px 0; width: 100%; }
+        .reset-btn { background: none; border: 1px solid #ccc; color: #888; padding: 5px; font-size: 0.65rem; border-radius: 4px; cursor: pointer; }
+    </style>
+</head>
+<body class="theme-rookie">
+
+<div class="container" id="main-container">
+    <div class="card">
+        <div class="profile-header">
+            <div class="lv-info"><span class="job-title" id="job-title">초보 모험가</span>Lv.<span id="lv-val">1</span> USER</div>
+            <span id="gold-val" style="color:var(--gold-color); font-size: 1.1rem;">0 G</span>
+        </div>
+        
+        <div class="bar-label"><span>❤️ HP</span><span id="hp-status">-</span></div>
+        <div class="bar-container"><div id="hp-bar" class="bar-fill hp-fill"></div></div>
+        
+        <div class="bar-label"><span>💧 MP</span><span id="mp-status">-</span></div>
+        <div class="bar-container"><div id="mp-bar" class="bar-fill mp-fill"></div></div>
+        
+        <div class="bar-label"><span>⭐ EXP</span></div>
+        <div class="bar-container"><div id="exp-bar" class="bar-fill exp-fill"></div></div>
+
+        <div class="chart-container"><canvas id="statChart"></canvas></div>
+
+        <div class="stat-grid">
+            <div class="stat-item">💪 STR<br><input type="number" id="in-str" onchange="changeStat('str', this.value)"></div>
+            <div class="stat-item">🧠 INT<br><input type="number" id="in-int" onchange="changeStat('int', this.value)"></div>
+            <div class="stat-item">🏃 DEX<br><input type="number" id="in-dex" onchange="changeStat('dex', this.value)"></div>
+            <div class="stat-item">🎨 SENSE<br><input type="number" id="in-sense" onchange="changeStat('sense', this.value)"></div>
+            <div class="stat-item">🛡️ WILL<br><input type="number" id="in-will" onchange="changeStat('will', this.value)"></div>
+            <div class="stat-item">🍀 LUK<br><input type="number" id="in-luk" onchange="changeStat('luk', this.value)"></div>
+        </div>
+    </div>
+
+    <div class="section-title">🛡️ 일일 퀘스트 (+10 EXP)</div>
+    <div class="quest-list">
+        <label class="quest-item"><input type="checkbox" onchange="toggleQuest('6시 로그인', this)"> 🌅 6시 로그인</label>
+        <label class="quest-item"><input type="checkbox" onchange="toggleQuest('수련', this)"> 🏃 수련 완료</label>
+        <label class="quest-item"><input type="checkbox" onchange="toggleQuest('독서', this)"> 📖 독서 30분</label>
+        <label class="quest-item"><input type="checkbox" onchange="toggleQuest('골드 사수', this)"> 💰 골드 사수</label>
+        <label class="quest-item"><input type="checkbox" onchange="toggleQuest('외국어 습득', this)"> 🗣️ 외국어 습득</label>
+    </div>
+
+    <div class="section-title">🔮 스페셜 이벤트 (+100 EXP)</div>
+    <div class="special-box">
+        <input type="text" id="special-input" placeholder="특별한 성취를 입력하세요">
+        <button class="special-btn" onclick="addSpecialEvent()">기록</button>
+    </div>
+
+    <div class="control-group">
+        <div class="control-box"><strong>[상태 조절]</strong>
+            <div class="btn-grid">
+                <button onclick="updateStatus('hp', 10)">H+10</button><button onclick="updateStatus('hp', -10)">H-10</button>
+                <button onclick="updateStatus('mp', 10)">M+10</button><button onclick="updateStatus('mp', -10)">M-10</button>
+            </div>
+        </div>
+        <div class="control-box"><strong>[재화 관리]</strong>
+            <div class="btn-grid">
+                <button onclick="updateExp(10)">Exp+10</button><button onclick="updateGold()">Gold</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">📜 히스토리</div>
+    <div class="log-area" id="log-list"></div>
+
+    <div class="footer-btns">
+        <button class="reset-btn" onclick="resetLevel()">레벨 초기화</button>
+        <button class="reset-btn" onclick="resetSoft()">데이터 초기화</button>
+        <button class="reset-btn" onclick="resetHistoryOnly()">로그만 삭제</button>
+    </div>
+</div>
+
+<script>
+    let charData = { lv: 1, hp: 70, mp: 70, exp: 0, gold: 0, stats: { str: 10, int: 10, dex: 10, sense: 10, will: 10, luk: 10 }, logs: [] };
+    let myChart;
+
+    window.onload = () => {
+        const saved = localStorage.getItem('rpgDiaryV6');
+        if (saved) charData = JSON.parse(saved);
+        initChart();
+        render();
+    };
+
+    function initChart() {
+        const ctx = document.getElementById('statChart').getContext('2d');
+        myChart = new Chart(ctx, {
+            type: 'radar',
+            data: {
+                labels: ['STR', 'INT', 'DEX', 'SENSE', 'WILL', 'LUK'],
+                datasets: [{ data: Object.values(charData.stats), backgroundColor: 'rgba(62, 39, 35, 0.4)', borderColor: 'rgba(62, 39, 35, 1)', borderWidth: 2, pointRadius: 3, tension: 0 }]
+            },
+            options: { scales: { r: { min: 0, max: 100, ticks: { display: false }, grid: { color: '#e0e0e0' } } }, plugins: { legend: { display: false } } }
+        });
+    }
+
+    function render() {
+        localStorage.setItem('rpgDiaryV6', JSON.stringify(charData));
+        document.getElementById('lv-val').innerText = charData.lv;
+        document.getElementById('job-title').innerText = getJobTitle(charData.lv);
+        document.getElementById('gold-val').innerText = charData.gold.toLocaleString() + " G";
+        document.getElementById('hp-bar').style.width = charData.hp + "%";
+        document.getElementById('mp-bar').style.width = charData.mp + "%";
+        document.getElementById('exp-bar').style.width = (charData.exp % 100) + "%";
+        document.getElementById('hp-status').innerText = charData.hp >= 85 ? "[활력]" : (charData.hp >= 30 ? "[보통]" : "[피로]");
+        document.getElementById('mp-status').innerText = charData.mp >= 85 ? "[명료]" : (charData.mp >= 30 ? "[안정]" : "[혼란]");
+        
+        // 테마 변경
+        const body = document.body;
+        body.classList.remove('theme-rookie', 'theme-apprentice', 'theme-veteran', 'theme-legend');
+        if(charData.lv >= 35) body.classList.add('theme-legend');
+        else if(charData.lv >= 20) body.classList.add('theme-veteran');
+        else if(charData.lv >= 10) body.classList.add('theme-apprentice');
+        else body.classList.add('theme-rookie');
+
+        for (let s in charData.stats) document.getElementById(`in-${s}`).value = charData.stats[s];
+        document.getElementById('log-list').innerHTML = charData.logs.map(l => `<div class="${l.colorClass}">> ${l.time} | ${l.msg}</div>`).reverse().join('');
+        myChart.data.datasets[0].data = Object.values(charData.stats);
+        myChart.update();
+    }
+
+    function getJobTitle(lv) {
+        if (lv >= 50) return "👑 전설의 수호자";
+        if (lv >= 35) return "🛡️ 성기사";
+        if (lv >= 20) return "🏹 베테랑 용사";
+        if (lv >= 10) return "✨ 숙련된 훈련생";
+        return "🌱 초보 모험가";
+    }
+
+    function addLog(msg, colorClass = 'log-pos') {
+        const time = new Date().toLocaleTimeString('ko-KR', { hour12: false, hour: '2-digit', minute: '2-digit' });
+        charData.logs.push({ time, msg, colorClass });
+        if (charData.logs.length > 50) charData.logs.shift();
+    }
+
+    function addSpecialEvent() {
+        const input = document.getElementById('special-input');
+        if (!input.value) return;
+        addLog(`★ SPECIAL: ${input.value} (+100 EXP)`, 'log-special');
+        updateExp(100, "스페셜 이벤트 성취");
+        input.value = "";
+        render();
+    }
+
+    function updateStatus(type, amt) {
+        if (type === 'hp') charData.hp = Math.max(0, Math.min(100, charData.hp + amt));
+        else charData.mp = Math.max(0, Math.min(100, charData.mp + amt));
+        addLog(`${type.toUpperCase()} ${amt>0?'+':''}${amt}`, amt < 0 ? 'log-neg' : 'log-pos');
+        render();
+    }
+
+    function toggleQuest(name, cb) {
+        if (cb.checked) updateExp(10, `퀘스트: ${name}`);
+        else addLog(`퀘스트 취소: ${name}`, 'log-neg');
+        render();
+    }
+
+    function changeStat(statName, newValue) {
+        const oldVal = charData.stats[statName];
+        const newVal = parseInt(newValue) || 0;
+        const diff = newVal - oldVal;
+        if (diff === 0) return;
+        const reason = prompt(`${statName.toUpperCase()} 사유:`, "수련");
+        if (reason) {
+            charData.stats[statName] = newVal;
+            addLog(`${statName.toUpperCase()} ${diff>0?'+':''}${diff} (${reason})`, diff < 0 ? 'log-neg' : 'log-pos');
+        } else document.getElementById(`in-${statName}`).value = oldVal;
+        render();
+    }
+
+    function updateExp(amt, reason = "성장") {
+        const oldLv = Math.floor(charData.exp / 100) + 1;
+        charData.exp += amt;
+        const newLv = Math.floor(charData.exp / 100) + 1;
+        if (newLv > oldLv) {
+            charData.lv = newLv;
+            addLog(`🎊 LEVEL UP! Lv.${newLv}`, 'log-pos');
+            createSparkle();
+        }
+        render();
+    }
+
+    function createSparkle() {
+        for (let i = 0; i < 30; i++) {
+            const s = document.createElement('div');
+            s.className = 'sparkle';
+            s.style.setProperty('--x', `${(Math.random() - 0.5) * 300}px`);
+            s.style.setProperty('--y', `${(Math.random() - 0.5) * 300}px`);
+            s.style.left = '50%'; s.style.top = '20%';
+            document.getElementById('main-container').appendChild(s);
+            setTimeout(() => s.remove(), 1000);
+        }
+    }
+
+    function updateGold() {
+        const amt = parseInt(prompt("골드량:"));
+        if (!isNaN(amt)) { charData.gold += amt; addLog(`💰 GOLD ${amt>0?'+':''}${amt}`, amt < 0 ? 'log-neg' : 'log-pos'); render(); }
+    }
+
+    // 초기화 기능들
+    function resetLevel() { if(confirm("레벨과 경험치만 1로 되돌릴까요?")) { charData.lv = 1; charData.exp = 0; render(); } }
+    function resetSoft() { if(confirm("레벨을 제외한 나머지 데이터(스탯/골드/HP/MP)를 초기화할까요?")) { charData.hp = 70; charData.mp = 70; charData.gold = 0; charData.stats = { str: 10, int: 10, dex: 10, sense: 10, will: 10, luk: 10 }; render(); } }
+    function resetHistoryOnly() { if(confirm("히스토리 로그만 모두 삭제할까요?")) { charData.logs = []; render(); } }
+</script>
+
+</body>
+</html>
