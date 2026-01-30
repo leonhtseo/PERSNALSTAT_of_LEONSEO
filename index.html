@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RPG 로그 북 - 마스터 버전</title>
+    <title>RPG 로그 북 - 마스터 버전 8.1</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff');
@@ -45,8 +45,8 @@
         .chart-container { width: 100%; height: 240px; margin: 5px 0; }
 
         .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; background: #fafafa; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
-        .stat-item { text-align: left; font-size: 0.65rem; font-weight: bold; background: white; padding: 5px; border: 1px solid #eee; border-radius: 4px; }
-        .stat-item input { width: 40px; float: right; text-align: center; border: 1px solid var(--main-brown); border-radius: 4px; font-family: 'DungGeunMo'; }
+        .stat-item { text-align: left; font-size: 0.65rem; font-weight: bold; background: white; padding: 8px; border: 1px solid #eee; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+        .stat-item input { width: 45px; text-align: center; border: 2px solid var(--main-brown); border-radius: 4px; font-family: 'DungGeunMo'; font-size: 0.8rem; padding: 2px; }
 
         .section-title { font-size: 0.9rem; margin: 10px 0 5px 0; font-weight: bold; }
         .quest-list { background: #fff; border: 2px solid var(--main-brown); padding: 10px; border-radius: 10px; margin-bottom: 10px; }
@@ -67,9 +67,9 @@
         .log-pos { color: #4caf50; }
         .log-neg { color: #ff5252; font-weight: bold; }
         .log-special { color: #d1a3ff; font-weight: bold; }
-        .log-user { color: #64b5f6; } /* 파란색 로그 */
+        .log-user { color: #64b5f6; } 
 
-        .user-log-box { display: flex; gap: 5px; margin-top: 8px; }
+        .user-log-box { display: flex; gap: 5px; margin-top: 8px; width: 100%; }
         .user-log-box input { flex: 1; font-family: 'DungGeunMo'; padding: 8px; border: 2px solid #2196f3; border-radius: 6px; font-size: 0.8rem; }
         .user-log-btn { background: #2196f3; color: white; border: none; padding: 0 15px; border-radius: 6px; cursor: pointer; font-family: 'DungGeunMo'; }
 
@@ -101,18 +101,17 @@
         <div class="chart-container"><canvas id="statChart"></canvas></div>
 
         <div class="stat-grid">
-            <div class="stat-item">💪 건강/체력<input type="number" id="in-str" onchange="changeStat('str', this.value)"></div>
-            <div class="stat-item">🧠 지성/성장<input type="number" id="in-int" onchange="changeStat('int', this.value)"></div>
-            <div class="stat-item">🏃 루틴/실행력<input type="number" id="in-dex" onchange="changeStat('dex', this.value)"></div>
-            <div class="stat-item">🎨 취향/감성<input type="number" id="in-sense" onchange="changeStat('sense', this.value)"></div>
-            <div class="stat-item">🛡️ 멘탈/의지<input type="number" id="in-will" onchange="changeStat('will', this.value)"></div>
-            <div class="stat-item">🍀 행복/운<input type="number" id="in-luk" onchange="changeStat('luk', this.value)"></div>
+            <div class="stat-item">💪 STR<br>(건강/체력)<input type="number" id="in-str" onchange="changeStat('str', this.value)"></div>
+            <div class="stat-item">🧠 INT<br>(지성/성장)<input type="number" id="in-int" onchange="changeStat('int', this.value)"></div>
+            <div class="stat-item">🏃 DEX<br>(루틴/실행력)<input type="number" id="in-dex" onchange="changeStat('dex', this.value)"></div>
+            <div class="stat-item">🎨 SENSE<br>(취향/감성)<input type="number" id="in-sense" onchange="changeStat('sense', this.value)"></div>
+            <div class="stat-item">🛡️ WILL<br>(멘탈/의지)<input type="number" id="in-will" onchange="changeStat('will', this.value)"></div>
+            <div class="stat-item">🍀 LUK<br>(행복/운)<input type="number" id="in-luk" onchange="changeStat('luk', this.value)"></div>
         </div>
     </div>
 
     <div class="section-title">🛡️ 일일 퀘스트 (+30 EXP)</div>
-    <div class="quest-list" id="quest-container">
-        </div>
+    <div class="quest-list" id="quest-container"></div>
 
     <div class="section-title">🔮 스페셜 이벤트 (+100 EXP)</div>
     <div class="special-box">
@@ -165,21 +164,19 @@
     let myChart;
 
     window.onload = () => {
-        const saved = localStorage.getItem('rpgDiaryV8');
+        const saved = localStorage.getItem('rpgDiaryV8_1');
         if (saved) charData = JSON.parse(saved);
-        
         checkDailyReset();
         initChart();
         render();
     };
 
-    // 자정 체크 및 퀘스트 리셋
     function checkDailyReset() {
         const today = new Date().toLocaleDateString();
         if (charData.lastQuestDate !== today) {
             charData.lastQuestDate = today;
             charData.completedQuests = [];
-            addLog("새로운 날이 밝았습니다! 퀘스트가 초기화되었습니다.", "log-pos");
+            addLog("자정이 지나 퀘스트가 초기화되었습니다.", "log-pos");
         }
         drawQuests();
     }
@@ -217,7 +214,7 @@
     }
 
     function render() {
-        localStorage.setItem('rpgDiaryV8', JSON.stringify(charData));
+        localStorage.setItem('rpgDiaryV8_1', JSON.stringify(charData));
         document.getElementById('lv-val').innerText = charData.lv;
         document.getElementById('job-title').innerText = getJobTitle(charData.lv);
         document.getElementById('gold-val').innerText = charData.gold.toLocaleString() + " G";
@@ -248,11 +245,10 @@
         if (charData.logs.length > 50) charData.logs.shift();
     }
 
-    // 파란색 유저 이벤트 추가
     function addUserEvent() {
         const input = document.getElementById('user-event-input');
         if (!input.value) return;
-        addLog(`[이벤트] ${input.value}`, 'log-user');
+        addLog(`[기록] ${input.value}`, 'log-user');
         input.value = "";
         render();
     }
@@ -280,7 +276,7 @@
         const newVal = parseInt(newValue) || 0;
         const diff = newVal - oldVal;
         if (diff === 0) return;
-        const reason = prompt(`변경 사유:`, "수련");
+        const reason = prompt(`${statName.toUpperCase()} 변경 사유:`, "수련");
         if (reason) {
             charData.stats[statName] = newVal;
             addLog(`${statName.toUpperCase()} ${diff>0?'+':''}${diff} (${reason})`, diff < 0 ? 'log-neg' : 'log-pos');
@@ -333,3 +329,4 @@
 
 </body>
 </html>
+
