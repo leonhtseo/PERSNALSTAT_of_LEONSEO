@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RPG 로그 북 - LEON 마스터 에디션 V10.4</title>
+    <title>RPG 로그 북 - LEON 마스터 에디션 V10.5</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff');
@@ -101,7 +101,7 @@
         .footer-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 15px 0; width: 100%; }
         .reset-btn { background: none; border: 1px solid #ccc; color: #888; padding: 5px; font-size: 0.65rem; border-radius: 4px; cursor: pointer; }
 
-        /* 레벨업 효과 스타일 */
+        /* 레벨업 효과 애니메이션 */
         @keyframes levelUpPop {
             0% { transform: scale(0.5); opacity: 0; }
             50% { transform: scale(1.2); opacity: 1; }
@@ -212,7 +212,7 @@
 
 <script>
     const QUESTS = ['🌅 6시 로그인', '🏃 수련 완료', '📖 독서 30분', '💰 골드 사수', '🗣️ 외국어 습득'];
-    const STORAGE_KEY = 'rpgDiaryLeonV10_Final';
+    const STORAGE_KEY = 'rpgDiaryLeonV10_Final_Fixed';
     
     let charData = { 
         lv: 1, hp: 70, mp: 70, exp: 0, gold: 0, 
@@ -234,6 +234,9 @@
         const today = new Date().toLocaleDateString();
         if (charData.lastQuestDate !== today) {
             charData.lastQuestDate = today; charData.completedQuests = [];
+            // 날짜가 바뀔 때만 초기화
+            charData.dailyBuff = { lv: '', item: '', c1: '', c2: '', c3: '' };
+            charData.isBuffActive = false; charData.isDebuffActive = false;
             addLog("새로운 날의 시작!", "log-pos");
         }
         drawQuests();
@@ -262,6 +265,7 @@
     }
 
     function render() {
+        // HP/MP 상태 텍스트
         const hpSt = document.getElementById('hp-status');
         if(charData.hp >= 80) hpSt.innerText = "[활력 넘침]";
         else if(charData.hp >= 40) hpSt.innerText = "[보통]";
@@ -274,6 +278,7 @@
         else if(charData.mp >= 20) mpSt.innerText = "[주의 산만]";
         else mpSt.innerText = "[혼란스러움]";
 
+        // 위험 알림 로직
         const isCurrentlyDangerous = charData.hp <= 30 || charData.mp <= 30;
         if (isCurrentlyDangerous && !charData.wasAlertActive) {
             addLog("⚠️ 시스템 경보: 수치 위험! 회복이 필요합니다.", "log-neg");
@@ -282,6 +287,13 @@
             addLog("✅ 수치가 정상 범위로 회복되었습니다.", "log-pos");
             charData.wasAlertActive = false;
         }
+
+        // 버프 입력창 값 유지 (이 부분이 추가되었습니다)
+        document.getElementById('buff-lv').value = charData.dailyBuff.lv || '';
+        document.getElementById('buff-item').value = charData.dailyBuff.item || '';
+        document.getElementById('buff-c1').value = charData.dailyBuff.c1 || '';
+        document.getElementById('buff-c2').value = charData.dailyBuff.c2 || '';
+        document.getElementById('buff-c3').value = charData.dailyBuff.c3 || '';
 
         localStorage.setItem(STORAGE_KEY, JSON.stringify(charData));
         document.getElementById('lv-val').innerText = charData.lv;
