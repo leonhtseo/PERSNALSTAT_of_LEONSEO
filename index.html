@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RPG 로그 북 - LEON 마스터 에디션 V10.3</title>
+    <title>RPG 로그 북 - LEON 마스터 에디션 V10.4</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff');
@@ -100,6 +100,23 @@
 
         .footer-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 15px 0; width: 100%; }
         .reset-btn { background: none; border: 1px solid #ccc; color: #888; padding: 5px; font-size: 0.65rem; border-radius: 4px; cursor: pointer; }
+
+        /* 레벨업 효과 스타일 */
+        @keyframes levelUpPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .levelup-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: flex; flex-direction: column;
+            justify-content: center; align-items: center; z-index: 9999;
+        }
+        .levelup-card {
+            background: white; border: 5px solid var(--exp-color);
+            padding: 30px; border-radius: 20px; text-align: center;
+            animation: levelUpPop 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
     </style>
 </head>
 <body class="theme-rookie">
@@ -195,7 +212,7 @@
 
 <script>
     const QUESTS = ['🌅 6시 로그인', '🏃 수련 완료', '📖 독서 30분', '💰 골드 사수', '🗣️ 외국어 습득'];
-    const STORAGE_KEY = 'rpgDiaryLeonV10_3';
+    const STORAGE_KEY = 'rpgDiaryLeonV10_Final';
     
     let charData = { 
         lv: 1, hp: 70, mp: 70, exp: 0, gold: 0, 
@@ -217,8 +234,6 @@
         const today = new Date().toLocaleDateString();
         if (charData.lastQuestDate !== today) {
             charData.lastQuestDate = today; charData.completedQuests = [];
-            charData.dailyBuff = { lv: '', item: '', c1: '', c2: '', c3: '' };
-            charData.isBuffActive = false; charData.isDebuffActive = false; charData.wasAlertActive = false;
             addLog("새로운 날의 시작!", "log-pos");
         }
         drawQuests();
@@ -247,7 +262,6 @@
     }
 
     function render() {
-        // 상태 텍스트 업데이트 로직 추가
         const hpSt = document.getElementById('hp-status');
         if(charData.hp >= 80) hpSt.innerText = "[활력 넘침]";
         else if(charData.hp >= 40) hpSt.innerText = "[보통]";
@@ -278,14 +292,14 @@
         document.getElementById('name-debuff').style.display = charData.isDebuffActive ? 'inline' : 'none';
         document.getElementById('name-alert').style.display = isCurrentlyDangerous ? 'inline' : 'none';
 
-        document.getElementById('btn-buff').className = charData.isBuffActive ? 't-btn active-b' : 't-btn';
-        document.getElementById('btn-debuff').className = charData.isDebuffActive ? 't-btn active-d' : 't-btn';
-
         document.getElementById('hp-bar').style.width = charData.hp + "%";
         document.getElementById('mp-bar').style.width = charData.mp + "%";
         document.getElementById('exp-bar').style.width = (charData.exp % 100) + "%";
         document.getElementById('hp-num').innerText = `${charData.hp}/100`;
         document.getElementById('mp-num').innerText = `${charData.mp}/100`;
+
+        document.getElementById('btn-buff').className = charData.isBuffActive ? 't-btn active-b' : 't-btn';
+        document.getElementById('btn-debuff').className = charData.isDebuffActive ? 't-btn active-d' : 't-btn';
 
         const body = document.body;
         body.className = charData.lv >= 35 ? 'theme-legend' : (charData.lv >= 20 ? 'theme-veteran' : (charData.lv >= 10 ? 'theme-apprentice' : 'theme-rookie'));
@@ -338,7 +352,7 @@
     }
 
     function promptStatus(type) {
-        const val = parseInt(prompt(`${type.toUpperCase()} 변화량을 입력하세요 (예: 15 또는 -15):`));
+        const val = parseInt(prompt(`${type.toUpperCase()} 변화량을 입력하세요:`));
         if(!isNaN(val)) {
             const reason = prompt("변화 사유를 입력하세요:", "커스텀 조절") || "커스텀 조절";
             updateStatus(type, val, reason);
@@ -351,9 +365,28 @@
         charData.exp += amt;
         const newLv = Math.floor(charData.exp / 100) + 1;
         addLog(`✨ EXP +${amt} (${reason})`, 'log-pos');
-        if (newLv > oldLv) { charData.lv = newLv; addLog(`🎊 LEVEL UP! Lv.${newLv}`, 'log-pos'); }
+        if (newLv > oldLv) { 
+            charData.lv = newLv; 
+            addLog(`🎊 LEVEL UP! Lv.${newLv}`, 'log-pos');
+            showLevelUpEffect(newLv);
+        }
         document.getElementById('exp-reason').value = "";
         render();
+    }
+
+    function showLevelUpEffect(lv) {
+        const overlay = document.createElement('div');
+        overlay.className = 'levelup-overlay';
+        overlay.innerHTML = `
+            <div class="levelup-card">
+                <div style="font-size: 3rem;">🎊</div>
+                <div style="color: #3e2723; margin: 10px 0; font-size: 1.5rem;">LEVEL UP!</div>
+                <div style="font-size: 2.5rem; color: #ff8f00;">Lv.${lv}</div>
+                <button onclick="this.parentElement.parentElement.remove()" style="margin-top: 20px; padding: 10px 20px; background: var(--exp-color); border: 2px solid #3e2723; cursor: pointer; font-family: 'DungGeunMo';">확인</button>
+            </div>
+        `;
+        document.body.appendChild(overlay);
+        setTimeout(() => { if(overlay.parentNode) overlay.remove(); }, 4000);
     }
 
     function promptExp() {
@@ -403,4 +436,5 @@
 
 </body>
 </html>
+
 
