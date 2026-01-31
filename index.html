@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RPG 로그 북 - LEON 마스터 에디션 V10.2</title>
+    <title>RPG 로그 북 - LEON 마스터 에디션 V10.3</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff');
@@ -117,10 +117,10 @@
             <span id="gold-val" style="color:var(--gold-color); font-size: 1.1rem;">0 G</span>
         </div>
         
-        <div class="bar-label"><span>❤️ HP <span id="hp-status" class="status-text hp-text">[로딩중]</span></span><span id="hp-num" style="font-size: 0.7rem;">70/100</span></div>
+        <div class="bar-label"><span>❤️ HP <span id="hp-status" class="status-text hp-text">[계산중]</span></span><span id="hp-num" style="font-size: 0.7rem;">70/100</span></div>
         <div class="bar-container"><div id="hp-bar" class="bar-fill hp-fill"></div></div>
         
-        <div class="bar-label"><span>💧 MP <span id="mp-status" class="status-text mp-text">[로딩중]</span></span><span id="mp-num" style="font-size: 0.7rem;">70/100</span></div>
+        <div class="bar-label"><span>💧 MP <span id="mp-status" class="status-text mp-text">[계산중]</span></span><span id="mp-num" style="font-size: 0.7rem;">70/100</span></div>
         <div class="bar-container"><div id="mp-bar" class="bar-fill mp-fill"></div></div>
         
         <div class="bar-label"><span>⭐ EXP</span></div>
@@ -195,7 +195,7 @@
 
 <script>
     const QUESTS = ['🌅 6시 로그인', '🏃 수련 완료', '📖 독서 30분', '💰 골드 사수', '🗣️ 외국어 습득'];
-    const STORAGE_KEY = 'rpgDiaryLeonV10_2';
+    const STORAGE_KEY = 'rpgDiaryLeonV10_3';
     
     let charData = { 
         lv: 1, hp: 70, mp: 70, exp: 0, gold: 0, 
@@ -247,6 +247,19 @@
     }
 
     function render() {
+        // 상태 텍스트 업데이트 로직 추가
+        const hpSt = document.getElementById('hp-status');
+        if(charData.hp >= 80) hpSt.innerText = "[활력 넘침]";
+        else if(charData.hp >= 40) hpSt.innerText = "[보통]";
+        else if(charData.hp >= 20) hpSt.innerText = "[피곤함]";
+        else hpSt.innerText = "[탈진]";
+
+        const mpSt = document.getElementById('mp-status');
+        if(charData.mp >= 80) mpSt.innerText = "[정신 맑음]";
+        else if(charData.mp >= 40) mpSt.innerText = "[안정]";
+        else if(charData.mp >= 20) mpSt.innerText = "[주의 산만]";
+        else mpSt.innerText = "[혼란스러움]";
+
         const isCurrentlyDangerous = charData.hp <= 30 || charData.mp <= 30;
         if (isCurrentlyDangerous && !charData.wasAlertActive) {
             addLog("⚠️ 시스템 경보: 수치 위험! 회복이 필요합니다.", "log-neg");
@@ -390,3 +403,4 @@
 
 </body>
 </html>
+
