@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RPG 로그 북 - 마스터 버전 9.0</title>
+    <title>RPG 로그 북 - LEON 마스터 에디션 V9.8</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff');
@@ -14,7 +14,8 @@
             --mp-color: #2196f3;
             --exp-color: #ffd740;
             --gold-color: #ff8f00;
-            --mint-color: #26c6da; /* 민트색 정의 */
+            --mint-color: #26c6da;
+            --danger-color: #d32f2f;
         }
 
         body { transition: background-color 1s ease; font-family: 'DungGeunMo', sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
@@ -35,6 +36,11 @@
         .profile-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 10px; border-bottom: 2px dashed #ddd; padding-bottom: 8px; }
         .lv-info { font-size: 1.3rem; font-weight: bold; }
         .job-title { font-size: 0.85rem; color: #795548; display: block; }
+        
+        .status-icon { font-size: 1rem; margin-left: 3px; vertical-align: middle; }
+        /* 자동 알림 아이콘 스타일 (깜빡임 효과 추가) */
+        .alert-icon { font-size: 1.1rem; color: var(--danger-color); font-weight: bold; animation: blink 1s infinite; margin-left: 5px; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
         .status-text { font-size: 0.75rem; font-weight: bold; margin-left: 5px; }
         .hp-text { color: var(--hp-color); }
@@ -53,22 +59,23 @@
         .stat-item { text-align: left; font-size: 0.65rem; font-weight: bold; background: white; padding: 8px; border: 1px solid #eee; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
         .stat-item input { width: 45px; text-align: center; border: 2px solid var(--main-brown); border-radius: 4px; font-family: 'DungGeunMo'; font-size: 0.8rem; padding: 2px; }
 
-        /* 퀘스트 & 버프 가로 배치 영역 */
         .grid-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; margin-bottom: 10px; }
         
-        .section-title { font-size: 0.9rem; margin: 10px 0 5px 0; font-weight: bold; }
+        .section-title { font-size: 0.9rem; margin: 10px 0 5px 0; font-weight: bold; display: flex; align-items: center; justify-content: space-between; }
+        
+        .toggle-btn-group { display: flex; gap: 3px; }
+        .t-btn { font-family: 'DungGeunMo'; font-size: 0.6rem; padding: 2px 5px; cursor: pointer; border: 1px solid #ccc; border-radius: 3px; background: #f0f0f0; }
+        .t-btn.active-b { background: #b2ebf2; border-color: var(--mint-color); font-weight: bold; }
+        .t-btn.active-d { background: #ffcdd2; border-color: #e57373; font-weight: bold; }
+
         .quest-list { background: #fff; border: 2px solid var(--main-brown); padding: 10px; border-radius: 10px; min-height: 140px; }
         .quest-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; padding: 3px 0; }
         
-        /* 민트색 버프 박스 */
         .buff-box { 
             background: #fff; border: 3px solid var(--mint-color); padding: 10px; border-radius: 10px; 
             font-size: 0.75rem; color: #333; display: flex; flex-direction: column; gap: 4px;
         }
-        .buff-box input { 
-            border: none; border-bottom: 1px solid #ddd; font-family: 'DungGeunMo'; 
-            font-size: 0.7rem; width: 100%; padding: 2px 0; background: transparent;
-        }
+        .buff-box input { border: none; border-bottom: 1px solid #ddd; font-family: 'DungGeunMo'; font-size: 0.7rem; width: 100%; padding: 2px 0; background: transparent; }
         .buff-box input:focus { outline: none; border-bottom: 1px solid var(--mint-color); }
         .buff-label { color: #00838f; font-weight: bold; }
 
@@ -102,7 +109,13 @@
 <div class="container" id="main-container">
     <div class="card">
         <div class="profile-header">
-            <div class="lv-info"><span class="job-title" id="job-title">초보 모험가</span>Lv.<span id="lv-val">1</span> USER</div>
+            <div class="lv-info">
+                <span class="job-title" id="job-title">모험가</span>
+                Lv.<span id="lv-val">1</span> LEON 
+                <span id="name-buff" class="status-icon" style="display:none">✨</span>
+                <span id="name-debuff" class="status-icon" style="display:none">💤</span>
+                <span id="name-alert" class="alert-icon" style="display:none">❗</span>
+            </div>
             <span id="gold-val" style="color:var(--gold-color); font-size: 1.1rem;">0 G</span>
         </div>
         
@@ -117,7 +130,6 @@
             <span id="mp-num" style="font-size: 0.7rem;">70/100</span>
         </div>
         <div class="bar-container"><div id="mp-bar" class="bar-fill mp-fill"></div></div>
-        
         <div class="bar-label"><span>⭐ EXP</span></div>
         <div class="bar-container"><div id="exp-bar" class="bar-fill exp-fill"></div></div>
 
@@ -139,7 +151,13 @@
             <div class="quest-list" id="quest-container"></div>
         </div>
         <div>
-            <div class="section-title">✨ 오늘의 버프</div>
+            <div class="section-title">
+                ✨ 버프
+                <div class="toggle-btn-group">
+                    <button id="btn-buff" class="t-btn" onclick="toggleStatus('buff')">버프</button>
+                    <button id="btn-debuff" class="t-btn" onclick="toggleStatus('debuff')">디버프</button>
+                </div>
+            </div>
             <div class="buff-box">
                 <div><span class="buff-label">> 버프 단계 :</span> <input type="text" id="buff-lv" onchange="saveBuff()"></div>
                 <div><span class="buff-label">> 색상/아이템 :</span> <input type="text" id="buff-item" onchange="saveBuff()"></div>
@@ -180,7 +198,7 @@
     <div class="section-title">📜 히스토리</div>
     <div class="log-area" id="log-list"></div>
     <div class="user-log-box">
-        <input type="text" id="user-event-input" placeholder="여기에 직접 히스토리를 적으세요">
+        <input type="text" id="user-event-input" placeholder="직접 히스토리 기록 (파란색)">
         <button class="user-log-btn" onclick="addUserEvent()">기록</button>
     </div>
 
@@ -193,7 +211,7 @@
 
 <script>
     const QUESTS = ['🌅 6시 로그인', '🏃 수련 완료', '📖 독서 30분', '💰 골드 사수', '🗣️ 외국어 습득'];
-    const STORAGE_KEY = 'rpgDiaryMasterV9';
+    const STORAGE_KEY = 'rpgDiaryLeonV9_8';
     
     let charData = { 
         lv: 1, hp: 70, mp: 70, exp: 0, gold: 0, 
@@ -201,7 +219,9 @@
         logs: [],
         lastQuestDate: "",
         completedQuests: [],
-        dailyBuff: { lv: '', item: '', c1: '', c2: '', c3: '' } // 버프 데이터 구조 추가
+        dailyBuff: { lv: '', item: '', c1: '', c2: '', c3: '' },
+        isBuffActive: false,
+        isDebuffActive: false
     };
     
     let myChart;
@@ -219,10 +239,23 @@
         if (charData.lastQuestDate !== today) {
             charData.lastQuestDate = today;
             charData.completedQuests = [];
-            charData.dailyBuff = { lv: '', item: '', c1: '', c2: '', c3: '' }; // 날짜 바뀌면 버프 초기화
-            addLog("새로운 날이 시작되었습니다. 퀘스트와 버프가 초기화되었습니다.", "log-pos");
+            charData.dailyBuff = { lv: '', item: '', c1: '', c2: '', c3: '' };
+            charData.isBuffActive = false;
+            charData.isDebuffActive = false;
+            addLog("새로운 날의 시작! LEON의 여정을 응원합니다.", "log-pos");
         }
         drawQuests();
+    }
+
+    function toggleStatus(type) {
+        if(type === 'buff') {
+            charData.isBuffActive = !charData.isBuffActive;
+            addLog(`버프 상태가 ${charData.isBuffActive ? '활성화' : '해제'}되었습니다.`, 'log-pos');
+        } else {
+            charData.isDebuffActive = !charData.isDebuffActive;
+            addLog(`졸음 디버프가 ${charData.isDebuffActive ? '활성화' : '해제'}되었습니다.`, 'log-neg');
+        }
+        render();
     }
 
     function saveBuff() {
@@ -251,13 +284,27 @@
         document.getElementById('job-title').innerText = getJobTitle(charData.lv);
         document.getElementById('gold-val').innerText = charData.gold.toLocaleString() + " G";
         
+        // 이름 옆 아이콘 렌더링
+        document.getElementById('name-buff').style.display = charData.isBuffActive ? 'inline' : 'none';
+        document.getElementById('name-debuff').style.display = charData.isDebuffActive ? 'inline' : 'none';
+        
+        // [자동 감지 시스템] HP 혹은 MP가 30 이하일 때 ❗ 아이콘 표시
+        const autoAlert = document.getElementById('name-alert');
+        if (charData.hp <= 30 || charData.mp <= 30) {
+            autoAlert.style.display = 'inline';
+        } else {
+            autoAlert.style.display = 'none';
+        }
+
+        document.getElementById('btn-buff').className = charData.isBuffActive ? 't-btn active-b' : 't-btn';
+        document.getElementById('btn-debuff').className = charData.isDebuffActive ? 't-btn active-d' : 't-btn';
+
         document.getElementById('hp-bar').style.width = charData.hp + "%";
         document.getElementById('mp-bar').style.width = charData.mp + "%";
         document.getElementById('exp-bar').style.width = (charData.exp % 100) + "%";
         document.getElementById('hp-num').innerText = `${charData.hp}/100`;
         document.getElementById('mp-num').innerText = `${charData.mp}/100`;
 
-        // HP/MP 상태 판정
         const hpSt = document.getElementById('hp-status');
         if(charData.hp >= 80) hpSt.innerText = "[활력 넘침]";
         else if(charData.hp >= 40) hpSt.innerText = "[보통]";
@@ -270,7 +317,6 @@
         else if(charData.mp >= 20) mpSt.innerText = "[주의 산만]";
         else mpSt.innerText = "[혼란스러움]";
 
-        // 버프 입력값 복구
         document.getElementById('buff-lv').value = charData.dailyBuff.lv || '';
         document.getElementById('buff-item').value = charData.dailyBuff.item || '';
         document.getElementById('buff-c1').value = charData.dailyBuff.c1 || '';
