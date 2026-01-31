@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RPG 로그 북 - 마스터 버전 8.5</title>
+    <title>RPG 로그 북 - 마스터 버전 9.0</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff');
@@ -14,6 +14,7 @@
             --mp-color: #2196f3;
             --exp-color: #ffd740;
             --gold-color: #ff8f00;
+            --mint-color: #26c6da; /* 민트색 정의 */
         }
 
         body { transition: background-color 1s ease; font-family: 'DungGeunMo', sans-serif; margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
@@ -35,7 +36,6 @@
         .lv-info { font-size: 1.3rem; font-weight: bold; }
         .job-title { font-size: 0.85rem; color: #795548; display: block; }
 
-        /* HP, MP 상태 텍스트 스타일 */
         .status-text { font-size: 0.75rem; font-weight: bold; margin-left: 5px; }
         .hp-text { color: var(--hp-color); }
         .mp-text { color: var(--mp-color); }
@@ -53,10 +53,25 @@
         .stat-item { text-align: left; font-size: 0.65rem; font-weight: bold; background: white; padding: 8px; border: 1px solid #eee; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
         .stat-item input { width: 45px; text-align: center; border: 2px solid var(--main-brown); border-radius: 4px; font-family: 'DungGeunMo'; font-size: 0.8rem; padding: 2px; }
 
-        .section-title { font-size: 0.9rem; margin: 10px 0 5px 0; font-weight: bold; }
-        .quest-list { background: #fff; border: 2px solid var(--main-brown); padding: 10px; border-radius: 10px; margin-bottom: 10px; }
-        .quest-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; padding: 3px 0; }
+        /* 퀘스트 & 버프 가로 배치 영역 */
+        .grid-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; margin-bottom: 10px; }
         
+        .section-title { font-size: 0.9rem; margin: 10px 0 5px 0; font-weight: bold; }
+        .quest-list { background: #fff; border: 2px solid var(--main-brown); padding: 10px; border-radius: 10px; min-height: 140px; }
+        .quest-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; padding: 3px 0; }
+        
+        /* 민트색 버프 박스 */
+        .buff-box { 
+            background: #fff; border: 3px solid var(--mint-color); padding: 10px; border-radius: 10px; 
+            font-size: 0.75rem; color: #333; display: flex; flex-direction: column; gap: 4px;
+        }
+        .buff-box input { 
+            border: none; border-bottom: 1px solid #ddd; font-family: 'DungGeunMo'; 
+            font-size: 0.7rem; width: 100%; padding: 2px 0; background: transparent;
+        }
+        .buff-box input:focus { outline: none; border-bottom: 1px solid var(--mint-color); }
+        .buff-label { color: #00838f; font-weight: bold; }
+
         .special-box { background: #f3e5f5; border: 2px solid #a333c8; padding: 10px; border-radius: 10px; display: flex; gap: 5px; }
         .special-box input { flex: 1; font-family: 'DungGeunMo'; padding: 5px; border: 1px solid #a333c8; border-radius: 4px; }
         .special-btn { background: #a333c8; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-family: 'DungGeunMo'; font-size: 0.75rem; }
@@ -77,9 +92,6 @@
         .user-log-box { display: flex; gap: 5px; margin-top: 8px; width: 100%; }
         .user-log-box input { flex: 1; font-family: 'DungGeunMo'; padding: 8px; border: 2px solid #2196f3; border-radius: 6px; font-size: 0.8rem; }
         .user-log-btn { background: #2196f3; color: white; border: none; padding: 0 15px; border-radius: 6px; cursor: pointer; font-family: 'DungGeunMo'; }
-
-        .sparkle { position: absolute; width: 6px; height: 6px; background: gold; border-radius: 50%; pointer-events: none; z-index: 1000; animation: move-sparkle 1s ease-out forwards; }
-        @keyframes move-sparkle { 0% { transform: translate(0, 0) scale(1); opacity: 1; } 100% { transform: translate(var(--x), var(--y)) scale(0); opacity: 0; } }
 
         .footer-btns { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; padding: 15px 0; width: 100%; }
         .reset-btn { background: none; border: 1px solid #ccc; color: #888; padding: 5px; font-size: 0.65rem; border-radius: 4px; cursor: pointer; }
@@ -121,8 +133,24 @@
         </div>
     </div>
 
-    <div class="section-title">🛡️ 일일 퀘스트 (+30 EXP)</div>
-    <div class="quest-list" id="quest-container"></div>
+    <div class="grid-layout">
+        <div>
+            <div class="section-title">🛡️ 퀘스트(+30)</div>
+            <div class="quest-list" id="quest-container"></div>
+        </div>
+        <div>
+            <div class="section-title">✨ 오늘의 버프</div>
+            <div class="buff-box">
+                <div><span class="buff-label">> 버프 단계 :</span> <input type="text" id="buff-lv" onchange="saveBuff()"></div>
+                <div><span class="buff-label">> 색상/아이템 :</span> <input type="text" id="buff-item" onchange="saveBuff()"></div>
+                <div><span class="buff-label">> 내용 :</span> 
+                    <input type="text" id="buff-c1" placeholder="1줄" onchange="saveBuff()">
+                    <input type="text" id="buff-c2" placeholder="2줄" onchange="saveBuff()">
+                    <input type="text" id="buff-c3" placeholder="3줄" onchange="saveBuff()">
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="section-title">🔮 스페셜 이벤트 (+100 EXP)</div>
     <div class="special-box">
@@ -165,18 +193,18 @@
 
 <script>
     const QUESTS = ['🌅 6시 로그인', '🏃 수련 완료', '📖 독서 30분', '💰 골드 사수', '🗣️ 외국어 습득'];
+    const STORAGE_KEY = 'rpgDiaryMasterV9';
     
-    // 기본값 HP/MP 70 설정
     let charData = { 
         lv: 1, hp: 70, mp: 70, exp: 0, gold: 0, 
         stats: { str: 10, int: 10, dex: 10, sense: 10, will: 10, luk: 10 }, 
         logs: [],
         lastQuestDate: "",
-        completedQuests: []
+        completedQuests: [],
+        dailyBuff: { lv: '', item: '', c1: '', c2: '', c3: '' } // 버프 데이터 구조 추가
     };
     
     let myChart;
-    const STORAGE_KEY = 'rpgDiaryMasterV1'; // 데이터 유지 키
 
     window.onload = () => {
         const saved = localStorage.getItem(STORAGE_KEY);
@@ -191,9 +219,21 @@
         if (charData.lastQuestDate !== today) {
             charData.lastQuestDate = today;
             charData.completedQuests = [];
-            addLog("자정이 지나 퀘스트가 초기화되었습니다.", "log-pos");
+            charData.dailyBuff = { lv: '', item: '', c1: '', c2: '', c3: '' }; // 날짜 바뀌면 버프 초기화
+            addLog("새로운 날이 시작되었습니다. 퀘스트와 버프가 초기화되었습니다.", "log-pos");
         }
         drawQuests();
+    }
+
+    function saveBuff() {
+        charData.dailyBuff = {
+            lv: document.getElementById('buff-lv').value,
+            item: document.getElementById('buff-item').value,
+            c1: document.getElementById('buff-c1').value,
+            c2: document.getElementById('buff-c2').value,
+            c3: document.getElementById('buff-c3').value
+        };
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(charData));
     }
 
     function drawQuests() {
@@ -205,15 +245,45 @@
         `).join('');
     }
 
-    function toggleQuest(name, cb) {
-        if (cb.checked) {
-            charData.completedQuests.push(name);
-            updateExp(30, `퀘스트: ${name}`);
-        } else {
-            charData.completedQuests = charData.completedQuests.filter(q => q !== name);
-            addLog(`퀘스트 취소: ${name}`, 'log-neg');
-        }
-        render();
+    function render() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(charData));
+        document.getElementById('lv-val').innerText = charData.lv;
+        document.getElementById('job-title').innerText = getJobTitle(charData.lv);
+        document.getElementById('gold-val').innerText = charData.gold.toLocaleString() + " G";
+        
+        document.getElementById('hp-bar').style.width = charData.hp + "%";
+        document.getElementById('mp-bar').style.width = charData.mp + "%";
+        document.getElementById('exp-bar').style.width = (charData.exp % 100) + "%";
+        document.getElementById('hp-num').innerText = `${charData.hp}/100`;
+        document.getElementById('mp-num').innerText = `${charData.mp}/100`;
+
+        // HP/MP 상태 판정
+        const hpSt = document.getElementById('hp-status');
+        if(charData.hp >= 80) hpSt.innerText = "[활력 넘침]";
+        else if(charData.hp >= 40) hpSt.innerText = "[보통]";
+        else if(charData.hp >= 20) hpSt.innerText = "[피곤함]";
+        else hpSt.innerText = "[탈진]";
+
+        const mpSt = document.getElementById('mp-status');
+        if(charData.mp >= 80) mpSt.innerText = "[정신 맑음]";
+        else if(charData.mp >= 40) mpSt.innerText = "[안정]";
+        else if(charData.mp >= 20) mpSt.innerText = "[주의 산만]";
+        else mpSt.innerText = "[혼란스러움]";
+
+        // 버프 입력값 복구
+        document.getElementById('buff-lv').value = charData.dailyBuff.lv || '';
+        document.getElementById('buff-item').value = charData.dailyBuff.item || '';
+        document.getElementById('buff-c1').value = charData.dailyBuff.c1 || '';
+        document.getElementById('buff-c2').value = charData.dailyBuff.c2 || '';
+        document.getElementById('buff-c3').value = charData.dailyBuff.c3 || '';
+        
+        const body = document.body;
+        body.className = charData.lv >= 35 ? 'theme-legend' : (charData.lv >= 20 ? 'theme-veteran' : (charData.lv >= 10 ? 'theme-apprentice' : 'theme-rookie'));
+
+        for (let s in charData.stats) document.getElementById(`in-${s}`).value = charData.stats[s];
+        document.getElementById('log-list').innerHTML = charData.logs.map(l => `<div class="${l.colorClass}">> ${l.time} | ${l.msg}</div>`).reverse().join('');
+        myChart.data.datasets[0].data = Object.values(charData.stats);
+        myChart.update();
     }
 
     function initChart() {
@@ -226,44 +296,6 @@
             },
             options: { scales: { r: { min: 0, max: 100, ticks: { display: false } } }, plugins: { legend: { display: false } } }
         });
-    }
-
-    function render() {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(charData));
-        document.getElementById('lv-val').innerText = charData.lv;
-        document.getElementById('job-title').innerText = getJobTitle(charData.lv);
-        document.getElementById('gold-val').innerText = charData.gold.toLocaleString() + " G";
-        
-        // 게이지 업데이트
-        document.getElementById('hp-bar').style.width = charData.hp + "%";
-        document.getElementById('mp-bar').style.width = charData.mp + "%";
-        document.getElementById('exp-bar').style.width = (charData.exp % 100) + "%";
-        
-        // HP/MP 숫자 표시
-        document.getElementById('hp-num').innerText = `${charData.hp}/100`;
-        document.getElementById('mp-num').innerText = `${charData.mp}/100`;
-
-        // HP 상태 텍스트
-        const hpSt = document.getElementById('hp-status');
-        if(charData.hp >= 80) hpSt.innerText = "[활력 넘침]";
-        else if(charData.hp >= 40) hpSt.innerText = "[보통]";
-        else if(charData.hp >= 20) hpSt.innerText = "[피곤함]";
-        else hpSt.innerText = "[탈진]";
-
-        // MP 상태 텍스트
-        const mpSt = document.getElementById('mp-status');
-        if(charData.mp >= 80) mpSt.innerText = "[정신 맑음]";
-        else if(charData.mp >= 40) mpSt.innerText = "[안정]";
-        else if(charData.mp >= 20) mpSt.innerText = "[주의 산만]";
-        else mpSt.innerText = "[혼란스러움]";
-        
-        const body = document.body;
-        body.className = charData.lv >= 35 ? 'theme-legend' : (charData.lv >= 20 ? 'theme-veteran' : (charData.lv >= 10 ? 'theme-apprentice' : 'theme-rookie'));
-
-        for (let s in charData.stats) document.getElementById(`in-${s}`).value = charData.stats[s];
-        document.getElementById('log-list').innerHTML = charData.logs.map(l => `<div class="${l.colorClass}">> ${l.time} | ${l.msg}</div>`).reverse().join('');
-        myChart.data.datasets[0].data = Object.values(charData.stats);
-        myChart.update();
     }
 
     function getJobTitle(lv) {
@@ -280,19 +312,21 @@
         if (charData.logs.length > 50) charData.logs.shift();
     }
 
+    function toggleQuest(name, cb) {
+        if (cb.checked) {
+            charData.completedQuests.push(name);
+            updateExp(30, `퀘스트: ${name}`);
+        } else {
+            charData.completedQuests = charData.completedQuests.filter(q => q !== name);
+            addLog(`퀘스트 취소: ${name}`, 'log-neg');
+        }
+        render();
+    }
+
     function addUserEvent() {
         const input = document.getElementById('user-event-input');
         if (!input.value) return;
         addLog(`[기록] ${input.value}`, 'log-user');
-        input.value = "";
-        render();
-    }
-
-    function addSpecialEvent() {
-        const input = document.getElementById('special-input');
-        if (!input.value) return;
-        addLog(`★ SPECIAL: ${input.value} (+100 EXP)`, 'log-special');
-        updateExp(100, "스페셜 성취");
         input.value = "";
         render();
     }
@@ -303,6 +337,20 @@
         else charData.mp = Math.max(0, Math.min(100, charData.mp + amt));
         addLog(`${type.toUpperCase()} ${amt>0?'+':''}${amt} (${reason})`, amt < 0 ? 'log-neg' : 'log-pos');
         document.getElementById('status-reason').value = "";
+        render();
+    }
+
+    function updateExp(amt, reasonParam) {
+        const reason = reasonParam || document.getElementById('exp-reason').value || "성장";
+        const oldLv = Math.floor(charData.exp / 100) + 1;
+        charData.exp += amt;
+        const newLv = Math.floor(charData.exp / 100) + 1;
+        addLog(`✨ EXP +${amt} (${reason})`, 'log-pos');
+        if (newLv > oldLv) {
+            charData.lv = newLv;
+            addLog(`🎊 LEVEL UP! Lv.${newLv}`, 'log-pos');
+        }
+        document.getElementById('exp-reason').value = "";
         render();
     }
 
@@ -319,33 +367,6 @@
         render();
     }
 
-    function updateExp(amt, reasonParam) {
-        const reason = reasonParam || document.getElementById('exp-reason').value || "성장";
-        const oldLv = Math.floor(charData.exp / 100) + 1;
-        charData.exp += amt;
-        const newLv = Math.floor(charData.exp / 100) + 1;
-        addLog(`✨ EXP +${amt} (${reason})`, 'log-pos');
-        if (newLv > oldLv) {
-            charData.lv = newLv;
-            addLog(`🎊 LEVEL UP! Lv.${newLv}`, 'log-pos');
-            createSparkle();
-        }
-        document.getElementById('exp-reason').value = "";
-        render();
-    }
-
-    function createSparkle() {
-        for (let i = 0; i < 30; i++) {
-            const s = document.createElement('div');
-            s.className = 'sparkle';
-            s.style.setProperty('--x', `${(Math.random() - 0.5) * 300}px`);
-            s.style.setProperty('--y', `${(Math.random() - 0.5) * 300}px`);
-            s.style.left = '50%'; s.style.top = '20%';
-            document.getElementById('main-container').appendChild(s);
-            setTimeout(() => s.remove(), 1000);
-        }
-    }
-
     function updateGold() {
         const reason = document.getElementById('exp-reason').value || "보상";
         const amt = parseInt(prompt("골드 변화량:"));
@@ -355,6 +376,15 @@
             document.getElementById('exp-reason').value = "";
             render(); 
         }
+    }
+
+    function addSpecialEvent() {
+        const input = document.getElementById('special-input');
+        if (!input.value) return;
+        addLog(`★ SPECIAL: ${input.value} (+100 EXP)`, 'log-special');
+        updateExp(100, "스페셜 성취");
+        input.value = "";
+        render();
     }
 
     function resetLevel() { if(confirm("레벨/경험치를 초기화할까요?")) { charData.lv = 1; charData.exp = 0; render(); } }
