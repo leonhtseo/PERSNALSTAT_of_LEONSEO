@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RPG 로그 북 - LEON 마스터 에디션 V9.8</title>
+    <title>RPG 로그 북 - LEON 마스터 에디션 V10.2</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_2001@1.1/DungGeunMo.woff');
@@ -38,7 +38,6 @@
         .job-title { font-size: 0.85rem; color: #795548; display: block; }
         
         .status-icon { font-size: 1rem; margin-left: 3px; vertical-align: middle; }
-        /* 자동 알림 아이콘 스타일 (깜빡임 효과 추가) */
         .alert-icon { font-size: 1.1rem; color: var(--danger-color); font-weight: bold; animation: blink 1s infinite; margin-left: 5px; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
 
@@ -53,14 +52,21 @@
         .mp-fill { background-color: var(--mp-color); }
         .exp-fill { background-color: var(--exp-color); }
 
-        .chart-container { width: 100%; height: 240px; margin: 5px 0; }
+        .control-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 15px 0; }
+        .control-box { background: #fdfdfd; border: 2px solid var(--main-brown); padding: 8px; border-radius: 8px; font-size: 0.75rem; }
+        .control-box strong { display: block; margin-bottom: 5px; color: var(--main-brown); }
+        .control-box input { font-family: 'DungGeunMo'; width: 100%; box-sizing: border-box; margin-bottom: 5px; padding: 4px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.7rem; }
+        
+        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
+        .btn-full { grid-column: span 2; background: #f0f0f0 !important; font-weight: bold; }
+        
+        .chart-container { width: 100%; height: 220px; margin: 5px 0; }
 
         .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6px; background: #fafafa; padding: 10px; border-radius: 8px; border: 1px solid #ddd; }
         .stat-item { text-align: left; font-size: 0.65rem; font-weight: bold; background: white; padding: 8px; border: 1px solid #eee; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
         .stat-item input { width: 45px; text-align: center; border: 2px solid var(--main-brown); border-radius: 4px; font-family: 'DungGeunMo'; font-size: 0.8rem; padding: 2px; }
 
         .grid-layout { display: grid; grid-template-columns: 1.2fr 1fr; gap: 10px; margin-bottom: 10px; }
-        
         .section-title { font-size: 0.9rem; margin: 10px 0 5px 0; font-weight: bold; display: flex; align-items: center; justify-content: space-between; }
         
         .toggle-btn-group { display: flex; gap: 3px; }
@@ -71,10 +77,7 @@
         .quest-list { background: #fff; border: 2px solid var(--main-brown); padding: 10px; border-radius: 10px; min-height: 140px; }
         .quest-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; padding: 3px 0; }
         
-        .buff-box { 
-            background: #fff; border: 3px solid var(--mint-color); padding: 10px; border-radius: 10px; 
-            font-size: 0.75rem; color: #333; display: flex; flex-direction: column; gap: 4px;
-        }
+        .buff-box { background: #fff; border: 3px solid var(--mint-color); padding: 10px; border-radius: 10px; font-size: 0.75rem; color: #333; display: flex; flex-direction: column; gap: 4px; }
         .buff-box input { border: none; border-bottom: 1px solid #ddd; font-family: 'DungGeunMo'; font-size: 0.7rem; width: 100%; padding: 2px 0; background: transparent; }
         .buff-box input:focus { outline: none; border-bottom: 1px solid var(--mint-color); }
         .buff-label { color: #00838f; font-weight: bold; }
@@ -82,12 +85,7 @@
         .special-box { background: #f3e5f5; border: 2px solid #a333c8; padding: 10px; border-radius: 10px; display: flex; gap: 5px; }
         .special-box input { flex: 1; font-family: 'DungGeunMo'; padding: 5px; border: 1px solid #a333c8; border-radius: 4px; }
         .special-btn { background: #a333c8; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-family: 'DungGeunMo'; font-size: 0.75rem; }
-
-        .control-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;}
-        .control-box { background: #fff; border: 2px solid var(--main-brown); padding: 10px; border-radius: 8px; font-size: 0.8rem; }
-        .control-box input { font-family: 'DungGeunMo'; width: 100%; box-sizing: border-box; margin-bottom: 5px; padding: 5px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.75rem; }
         
-        .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; }
         button { font-family: 'DungGeunMo'; cursor: pointer; border: 2px solid var(--main-brown); background: white; padding: 5px; border-radius: 4px; font-size: 0.7rem; }
 
         .log-area { background: #1a1a1a; padding: 10px; border-radius: 8px; height: 160px; overflow-y: auto; font-size: 0.75rem; line-height: 1.5; border: 2px solid var(--main-brown); margin-top: 5px; }
@@ -106,7 +104,7 @@
 </head>
 <body class="theme-rookie">
 
-<div class="container" id="main-container">
+<div class="container">
     <div class="card">
         <div class="profile-header">
             <div class="lv-info">
@@ -119,29 +117,45 @@
             <span id="gold-val" style="color:var(--gold-color); font-size: 1.1rem;">0 G</span>
         </div>
         
-        <div class="bar-label">
-            <span>❤️ HP <span id="hp-status" class="status-text hp-text">[로딩중]</span></span>
-            <span id="hp-num" style="font-size: 0.7rem;">70/100</span>
-        </div>
+        <div class="bar-label"><span>❤️ HP <span id="hp-status" class="status-text hp-text">[로딩중]</span></span><span id="hp-num" style="font-size: 0.7rem;">70/100</span></div>
         <div class="bar-container"><div id="hp-bar" class="bar-fill hp-fill"></div></div>
         
-        <div class="bar-label">
-            <span>💧 MP <span id="mp-status" class="status-text mp-text">[로딩중]</span></span>
-            <span id="mp-num" style="font-size: 0.7rem;">70/100</span>
-        </div>
+        <div class="bar-label"><span>💧 MP <span id="mp-status" class="status-text mp-text">[로딩중]</span></span><span id="mp-num" style="font-size: 0.7rem;">70/100</span></div>
         <div class="bar-container"><div id="mp-bar" class="bar-fill mp-fill"></div></div>
+        
         <div class="bar-label"><span>⭐ EXP</span></div>
         <div class="bar-container"><div id="exp-bar" class="bar-fill exp-fill"></div></div>
 
-        <div class="chart-container"><canvas id="statChart"></canvas></div>
+        <div class="control-group">
+            <div class="control-box">
+                <strong>[상태 조절]</strong>
+                <input type="text" id="status-reason" placeholder="변화 사유">
+                <div class="btn-grid">
+                    <button onclick="updateStatus('hp', 10)">H+10</button><button onclick="updateStatus('hp', -10)">H-10</button>
+                    <button onclick="updateStatus('mp', 10)">M+10</button><button onclick="updateStatus('mp', -10)">M-10</button>
+                    <button class="btn-full" onclick="promptStatus('hp')">H+@</button>
+                    <button class="btn-full" onclick="promptStatus('mp')">M+@</button>
+                </div>
+            </div>
+            <div class="control-box">
+                <strong>[성장 관리]</strong>
+                <input type="text" id="exp-reason" placeholder="이벤트 사유">
+                <div class="btn-grid">
+                    <button onclick="updateExp(50)">E+50</button><button onclick="updateExp(20)">E+20</button>
+                    <button onclick="updateExp(10)">E+10</button><button onclick="updateGold()">Gold</button>
+                    <button class="btn-full" onclick="promptExp()">E+@</button>
+                </div>
+            </div>
+        </div>
 
+        <div class="chart-container"><canvas id="statChart"></canvas></div>
         <div class="stat-grid">
-            <div class="stat-item">💪 STR<br>(건강/체력)<input type="number" id="in-str" onchange="changeStat('str', this.value)"></div>
-            <div class="stat-item">🧠 INT<br>(지성/성장)<input type="number" id="in-int" onchange="changeStat('int', this.value)"></div>
-            <div class="stat-item">🏃 DEX<br>(루틴/실행력)<input type="number" id="in-dex" onchange="changeStat('dex', this.value)"></div>
-            <div class="stat-item">🎨 SENSE<br>(취향/감성)<input type="number" id="in-sense" onchange="changeStat('sense', this.value)"></div>
-            <div class="stat-item">🛡️ WILL<br>(멘탈/의지)<input type="number" id="in-will" onchange="changeStat('will', this.value)"></div>
-            <div class="stat-item">🍀 LUK<br>(행복/운)<input type="number" id="in-luk" onchange="changeStat('luk', this.value)"></div>
+            <div class="stat-item">💪 STR<input type="number" id="in-str" onchange="changeStat('str', this.value)"></div>
+            <div class="stat-item">🧠 INT<input type="number" id="in-int" onchange="changeStat('int', this.value)"></div>
+            <div class="stat-item">🏃 DEX<input type="number" id="in-dex" onchange="changeStat('dex', this.value)"></div>
+            <div class="stat-item">🎨 SENSE<input type="number" id="in-sense" onchange="changeStat('sense', this.value)"></div>
+            <div class="stat-item">🛡️ WILL<input type="number" id="in-will" onchange="changeStat('will', this.value)"></div>
+            <div class="stat-item">🍀 LUK<input type="number" id="in-luk" onchange="changeStat('luk', this.value)"></div>
         </div>
     </div>
 
@@ -151,77 +165,44 @@
             <div class="quest-list" id="quest-container"></div>
         </div>
         <div>
-            <div class="section-title">
-                ✨ 버프
+            <div class="section-title">✨ 버프
                 <div class="toggle-btn-group">
                     <button id="btn-buff" class="t-btn" onclick="toggleStatus('buff')">버프</button>
                     <button id="btn-debuff" class="t-btn" onclick="toggleStatus('debuff')">디버프</button>
                 </div>
             </div>
             <div class="buff-box">
-                <div><span class="buff-label">> 버프 단계 :</span> <input type="text" id="buff-lv" onchange="saveBuff()"></div>
-                <div><span class="buff-label">> 색상/아이템 :</span> <input type="text" id="buff-item" onchange="saveBuff()"></div>
-                <div><span class="buff-label">> 내용 :</span> 
-                    <input type="text" id="buff-c1" placeholder="1줄" onchange="saveBuff()">
-                    <input type="text" id="buff-c2" placeholder="2줄" onchange="saveBuff()">
-                    <input type="text" id="buff-c3" placeholder="3줄" onchange="saveBuff()">
-                </div>
+                <div><span class="buff-label">> 단계 :</span> <input type="text" id="buff-lv" onchange="saveBuff()"></div>
+                <div><span class="buff-label">> 아이템 :</span> <input type="text" id="buff-item" onchange="saveBuff()"></div>
+                <input type="text" id="buff-c1" placeholder="1줄" onchange="saveBuff()"><input type="text" id="buff-c2" placeholder="2줄" onchange="saveBuff()"><input type="text" id="buff-c3" placeholder="3줄" onchange="saveBuff()">
             </div>
         </div>
     </div>
 
     <div class="section-title">🔮 스페셜 이벤트 (+100 EXP)</div>
-    <div class="special-box">
-        <input type="text" id="special-input" placeholder="특별한 성취 기록">
-        <button class="special-btn" onclick="addSpecialEvent()">기록</button>
-    </div>
-
-    <div class="control-group">
-        <div class="control-box">
-            <strong>[상태 조절]</strong>
-            <input type="text" id="status-reason" placeholder="변화 사유">
-            <div class="btn-grid">
-                <button onclick="updateStatus('hp', 10)">H+10</button><button onclick="updateStatus('hp', -10)">H-10</button>
-                <button onclick="updateStatus('mp', 10)">M+10</button><button onclick="updateStatus('mp', -10)">M-10</button>
-            </div>
-        </div>
-        <div class="control-box">
-            <strong>[성장 관리]</strong>
-            <input type="text" id="exp-reason" placeholder="이벤트 사유">
-            <div class="btn-grid">
-                <button onclick="updateExp(50)">E+50</button><button onclick="updateExp(20)">E+20</button>
-                <button onclick="updateExp(10)">E+10</button><button onclick="updateGold()">Gold</button>
-            </div>
-        </div>
-    </div>
+    <div class="special-box"><input type="text" id="special-input" placeholder="특별한 성취 기록"><button class="special-btn" onclick="addSpecialEvent()">기록</button></div>
 
     <div class="section-title">📜 히스토리</div>
     <div class="log-area" id="log-list"></div>
-    <div class="user-log-box">
-        <input type="text" id="user-event-input" placeholder="직접 히스토리 기록 (파란색)">
-        <button class="user-log-btn" onclick="addUserEvent()">기록</button>
-    </div>
+    <div class="user-log-box"><input type="text" id="user-event-input" placeholder="직접 기록 (파란색)"><button class="user-log-btn" onclick="addUserEvent()">기록</button></div>
 
     <div class="footer-btns">
-        <button class="reset-btn" onclick="resetLevel()">레벨 초기화</button>
-        <button class="reset-btn" onclick="resetSoft()">데이터 초기화</button>
-        <button class="reset-btn" onclick="resetHistoryOnly()">로그만 삭제</button>
+        <button class="reset-btn" onclick="resetLevel()">LV 초기화</button>
+        <button class="reset-btn" onclick="resetSoft()">스탯 초기화</button>
+        <button class="reset-btn" onclick="resetHistoryOnly()">로그 삭제</button>
     </div>
 </div>
 
 <script>
     const QUESTS = ['🌅 6시 로그인', '🏃 수련 완료', '📖 독서 30분', '💰 골드 사수', '🗣️ 외국어 습득'];
-    const STORAGE_KEY = 'rpgDiaryLeonV9_8';
+    const STORAGE_KEY = 'rpgDiaryLeonV10_2';
     
     let charData = { 
         lv: 1, hp: 70, mp: 70, exp: 0, gold: 0, 
         stats: { str: 10, int: 10, dex: 10, sense: 10, will: 10, luk: 10 }, 
-        logs: [],
-        lastQuestDate: "",
-        completedQuests: [],
+        logs: [], lastQuestDate: "", completedQuests: [],
         dailyBuff: { lv: '', item: '', c1: '', c2: '', c3: '' },
-        isBuffActive: false,
-        isDebuffActive: false
+        isBuffActive: false, isDebuffActive: false, wasAlertActive: false
     };
     
     let myChart;
@@ -229,32 +210,23 @@
     window.onload = () => {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) charData = JSON.parse(saved);
-        checkDailyReset();
-        initChart();
-        render();
+        checkDailyReset(); initChart(); render();
     };
 
     function checkDailyReset() {
         const today = new Date().toLocaleDateString();
         if (charData.lastQuestDate !== today) {
-            charData.lastQuestDate = today;
-            charData.completedQuests = [];
+            charData.lastQuestDate = today; charData.completedQuests = [];
             charData.dailyBuff = { lv: '', item: '', c1: '', c2: '', c3: '' };
-            charData.isBuffActive = false;
-            charData.isDebuffActive = false;
-            addLog("새로운 날의 시작! LEON의 여정을 응원합니다.", "log-pos");
+            charData.isBuffActive = false; charData.isDebuffActive = false; charData.wasAlertActive = false;
+            addLog("새로운 날의 시작!", "log-pos");
         }
         drawQuests();
     }
 
     function toggleStatus(type) {
-        if(type === 'buff') {
-            charData.isBuffActive = !charData.isBuffActive;
-            addLog(`버프 상태가 ${charData.isBuffActive ? '활성화' : '해제'}되었습니다.`, 'log-pos');
-        } else {
-            charData.isDebuffActive = !charData.isDebuffActive;
-            addLog(`졸음 디버프가 ${charData.isDebuffActive ? '활성화' : '해제'}되었습니다.`, 'log-neg');
-        }
+        if(type === 'buff') { charData.isBuffActive = !charData.isBuffActive; addLog(`버프 ${charData.isBuffActive ? '활성' : '해제'}`, 'log-pos'); } 
+        else { charData.isDebuffActive = !charData.isDebuffActive; addLog(`디버프 ${charData.isDebuffActive ? '활성' : '해제'}`, 'log-neg'); }
         render();
     }
 
@@ -271,30 +243,27 @@
 
     function drawQuests() {
         const container = document.getElementById('quest-container');
-        container.innerHTML = QUESTS.map(q => `
-            <label class="quest-item">
-                <input type="checkbox" ${charData.completedQuests.includes(q) ? 'checked' : ''} onchange="toggleQuest('${q}', this)"> ${q}
-            </label>
-        `).join('');
+        container.innerHTML = QUESTS.map(q => `<label class="quest-item"><input type="checkbox" ${charData.completedQuests.includes(q) ? 'checked' : ''} onchange="toggleQuest('${q}', this)"> ${q}</label>`).join('');
     }
 
     function render() {
+        const isCurrentlyDangerous = charData.hp <= 30 || charData.mp <= 30;
+        if (isCurrentlyDangerous && !charData.wasAlertActive) {
+            addLog("⚠️ 시스템 경보: 수치 위험! 회복이 필요합니다.", "log-neg");
+            charData.wasAlertActive = true;
+        } else if (!isCurrentlyDangerous && charData.wasAlertActive) {
+            addLog("✅ 수치가 정상 범위로 회복되었습니다.", "log-pos");
+            charData.wasAlertActive = false;
+        }
+
         localStorage.setItem(STORAGE_KEY, JSON.stringify(charData));
         document.getElementById('lv-val').innerText = charData.lv;
         document.getElementById('job-title').innerText = getJobTitle(charData.lv);
         document.getElementById('gold-val').innerText = charData.gold.toLocaleString() + " G";
         
-        // 이름 옆 아이콘 렌더링
         document.getElementById('name-buff').style.display = charData.isBuffActive ? 'inline' : 'none';
         document.getElementById('name-debuff').style.display = charData.isDebuffActive ? 'inline' : 'none';
-        
-        // [자동 감지 시스템] HP 혹은 MP가 30 이하일 때 ❗ 아이콘 표시
-        const autoAlert = document.getElementById('name-alert');
-        if (charData.hp <= 30 || charData.mp <= 30) {
-            autoAlert.style.display = 'inline';
-        } else {
-            autoAlert.style.display = 'none';
-        }
+        document.getElementById('name-alert').style.display = isCurrentlyDangerous ? 'inline' : 'none';
 
         document.getElementById('btn-buff').className = charData.isBuffActive ? 't-btn active-b' : 't-btn';
         document.getElementById('btn-debuff').className = charData.isDebuffActive ? 't-btn active-d' : 't-btn';
@@ -305,24 +274,6 @@
         document.getElementById('hp-num').innerText = `${charData.hp}/100`;
         document.getElementById('mp-num').innerText = `${charData.mp}/100`;
 
-        const hpSt = document.getElementById('hp-status');
-        if(charData.hp >= 80) hpSt.innerText = "[활력 넘침]";
-        else if(charData.hp >= 40) hpSt.innerText = "[보통]";
-        else if(charData.hp >= 20) hpSt.innerText = "[피곤함]";
-        else hpSt.innerText = "[탈진]";
-
-        const mpSt = document.getElementById('mp-status');
-        if(charData.mp >= 80) mpSt.innerText = "[정신 맑음]";
-        else if(charData.mp >= 40) mpSt.innerText = "[안정]";
-        else if(charData.mp >= 20) mpSt.innerText = "[주의 산만]";
-        else mpSt.innerText = "[혼란스러움]";
-
-        document.getElementById('buff-lv').value = charData.dailyBuff.lv || '';
-        document.getElementById('buff-item').value = charData.dailyBuff.item || '';
-        document.getElementById('buff-c1').value = charData.dailyBuff.c1 || '';
-        document.getElementById('buff-c2').value = charData.dailyBuff.c2 || '';
-        document.getElementById('buff-c3').value = charData.dailyBuff.c3 || '';
-        
         const body = document.body;
         body.className = charData.lv >= 35 ? 'theme-legend' : (charData.lv >= 20 ? 'theme-veteran' : (charData.lv >= 10 ? 'theme-apprentice' : 'theme-rookie'));
 
@@ -359,31 +310,26 @@
     }
 
     function toggleQuest(name, cb) {
-        if (cb.checked) {
-            charData.completedQuests.push(name);
-            updateExp(30, `퀘스트: ${name}`);
-        } else {
-            charData.completedQuests = charData.completedQuests.filter(q => q !== name);
-            addLog(`퀘스트 취소: ${name}`, 'log-neg');
-        }
+        if (cb.checked) { charData.completedQuests.push(name); updateExp(30, `퀘스트: ${name}`); } 
+        else { charData.completedQuests = charData.completedQuests.filter(q => q !== name); addLog(`취소: ${name}`, 'log-neg'); }
         render();
     }
 
-    function addUserEvent() {
-        const input = document.getElementById('user-event-input');
-        if (!input.value) return;
-        addLog(`[기록] ${input.value}`, 'log-user');
-        input.value = "";
-        render();
-    }
-
-    function updateStatus(type, amt) {
-        const reason = document.getElementById('status-reason').value || "일반 활동";
+    function updateStatus(type, amt, reasonParam) {
+        const reason = reasonParam || document.getElementById('status-reason').value || "일반 활동";
         if (type === 'hp') charData.hp = Math.max(0, Math.min(100, charData.hp + amt));
         else charData.mp = Math.max(0, Math.min(100, charData.mp + amt));
         addLog(`${type.toUpperCase()} ${amt>0?'+':''}${amt} (${reason})`, amt < 0 ? 'log-neg' : 'log-pos');
         document.getElementById('status-reason').value = "";
         render();
+    }
+
+    function promptStatus(type) {
+        const val = parseInt(prompt(`${type.toUpperCase()} 변화량을 입력하세요 (예: 15 또는 -15):`));
+        if(!isNaN(val)) {
+            const reason = prompt("변화 사유를 입력하세요:", "커스텀 조절") || "커스텀 조절";
+            updateStatus(type, val, reason);
+        }
     }
 
     function updateExp(amt, reasonParam) {
@@ -392,12 +338,17 @@
         charData.exp += amt;
         const newLv = Math.floor(charData.exp / 100) + 1;
         addLog(`✨ EXP +${amt} (${reason})`, 'log-pos');
-        if (newLv > oldLv) {
-            charData.lv = newLv;
-            addLog(`🎊 LEVEL UP! Lv.${newLv}`, 'log-pos');
-        }
+        if (newLv > oldLv) { charData.lv = newLv; addLog(`🎊 LEVEL UP! Lv.${newLv}`, 'log-pos'); }
         document.getElementById('exp-reason').value = "";
         render();
+    }
+
+    function promptExp() {
+        const val = parseInt(prompt(`EXP 증가량을 입력하세요:`));
+        if(!isNaN(val)) {
+            const reason = prompt("성장 사유를 입력하세요:", "커스텀 성장") || "커스텀 성장";
+            updateExp(val, reason);
+        }
     }
 
     function changeStat(statName, newValue) {
@@ -406,22 +357,15 @@
         const diff = newVal - oldVal;
         if (diff === 0) return;
         const reason = prompt(`${statName.toUpperCase()} 변경 사유:`, "수련");
-        if (reason) {
-            charData.stats[statName] = newVal;
-            addLog(`${statName.toUpperCase()} ${diff>0?'+':''}${diff} (${reason})`, diff < 0 ? 'log-neg' : 'log-pos');
-        } else document.getElementById(`in-${statName}`).value = oldVal;
+        if (reason) { charData.stats[statName] = newVal; addLog(`${statName.toUpperCase()} ${diff>0?'+':''}${diff} (${reason})`, diff < 0 ? 'log-neg' : 'log-pos'); } 
+        else document.getElementById(`in-${statName}`).value = oldVal;
         render();
     }
 
     function updateGold() {
         const reason = document.getElementById('exp-reason').value || "보상";
         const amt = parseInt(prompt("골드 변화량:"));
-        if (!isNaN(amt)) { 
-            charData.gold += amt; 
-            addLog(`💰 GOLD ${amt>0?'+':''}${amt} (${reason})`, amt < 0 ? 'log-neg' : 'log-pos'); 
-            document.getElementById('exp-reason').value = "";
-            render(); 
-        }
+        if (!isNaN(amt)) { charData.gold += amt; addLog(`💰 GOLD ${amt>0?'+':''}${amt} (${reason})`, amt < 0 ? 'log-neg' : 'log-pos'); render(); }
     }
 
     function addSpecialEvent() {
@@ -429,13 +373,19 @@
         if (!input.value) return;
         addLog(`★ SPECIAL: ${input.value} (+100 EXP)`, 'log-special');
         updateExp(100, "스페셜 성취");
-        input.value = "";
-        render();
+        input.value = ""; render();
     }
 
-    function resetLevel() { if(confirm("레벨/경험치를 초기화할까요?")) { charData.lv = 1; charData.exp = 0; render(); } }
-    function resetSoft() { if(confirm("스탯/재화 데이터를 초기화할까요?")) { charData.hp = 70; charData.mp = 70; charData.gold = 0; charData.stats = { str: 10, int: 10, dex: 10, sense: 10, will: 10, luk: 10 }; render(); } }
-    function resetHistoryOnly() { if(confirm("로그를 모두 삭제할까요?")) { charData.logs = []; render(); } }
+    function addUserEvent() {
+        const input = document.getElementById('user-event-input');
+        if (!input.value) return;
+        addLog(`[기록] ${input.value}`, 'log-user');
+        input.value = ""; render();
+    }
+
+    function resetLevel() { if(confirm("LV 초기화?")) { charData.lv = 1; charData.exp = 0; render(); } }
+    function resetSoft() { if(confirm("데이터 초기화?")) { charData.hp = 70; charData.mp = 70; charData.gold = 0; charData.stats = { str: 10, int: 10, dex: 10, sense: 10, will: 10, luk: 10 }; render(); } }
+    function resetHistoryOnly() { if(confirm("로그 삭제?")) { charData.logs = []; render(); } }
 </script>
 
 </body>
